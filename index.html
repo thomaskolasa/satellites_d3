@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<head>
+   <meta charset="utf-8">
+   <title>Visualization with D3</title>
+   <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+   <script src="jquery.csv.min.js"></script>
+</head>
+<style>
+body {
+  font: 14px sans-serif;
+}
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+.point {
+  stroke: #000;
+}
+#tooltip {
+  position: absolute;
+  width: 200px;
+  height: auto;
+  padding: 5px;
+  background-color: lightblue;
+}
+#tooltip.hidden {
+  display: none;
+}
+#wrapper {
+  position: relative;
+  /*text-align: center;*/
+}
+</style>
+<body>
+  <!-- <div id="filter">
+    <input name="user" value="Civil" type="checkbox" checked checked>Civil
+    </input>
+    <input name="user" value="Commercial" type="checkbox" checked checked >Commercial
+    </input>
+    <input name="user" value="Military" type="checkbox" checked checked >Military
+    </input>
+    <input name="user" value="Government" type="checkbox" checked checked >Government
+    </input>
+  </div> -->
+  <div id="filter">
+    <center>
+    <table>
+      <tr>
+        <td valign="top">
+          <input name="v" value="USA" type="checkbox" checked >USA
+          </input><br>
+          <input name="v" value="NR" type="checkbox" checked >Not Reported
+          </input><br>
+          <input name="v" value="Russia" type="checkbox" checked >Russia
+          </input><br>
+          <input name="v" value="China" type="checkbox" checked >China
+          </input><br>
+          <input name="v" value="France" type="checkbox" checked >France
+          </input><br>
+          <input name="v" value="Japan" type="checkbox" checked >Japan
+          </input><br>
+          <input name="v" value="United Kingdom" type="checkbox" checked >United Kingdom
+          </input><br>
+          <input name="v" value="India" type="checkbox" checked >India
+          </input><br>
+          <input name="v" value="Germany" type="checkbox" checked >Germany
+          </input><br>
+          <input name="v" value="Luxembourg" type="checkbox" checked >Luxembourg
+          </input><br>
+          <input name="v" value="Canada" type="checkbox" checked >Canada
+          </input><br>
+          <input name="v" value="ESA" type="checkbox" checked >ESA
+          </input>
+        </td>
+        <td valign="top">
+          <input name="v" value="Brazil" type="checkbox" checked >Brazil
+          </input><br>
+          <input name="v" value="Saudi Arabia" type="checkbox" checked >Saudi Arabia
+          </input><br>
+          <input name="v" value="South Korea" type="checkbox" checked >South Korea
+          </input><br>
+          <input name="v" value="Italy" type="checkbox" checked >Italy
+          </input><br>
+          <input name="v" value="EUMETSAT" type="checkbox" checked >EUMETSAT
+          </input><br>
+          <input name="v" value="United Arab Emirates" type="checkbox" checked >United Arab Emirates
+          </input><br>
+          <input name="v" value="Norway" type="checkbox" checked >Norway
+          </input><br>
+          <input name="v" value="Australia" type="checkbox" checked >Australia
+          </input><br>
+          <input name="v" value="Indonesia" type="checkbox" checked >Indonesia
+          </input><br>
+          <input name="v" value="Malaysia" type="checkbox" checked >Malaysia
+          </input><br>
+          <input name="v" value="Mexico" type="checkbox" checked >Mexico
+          </input><br>
+          <input name="v" value="Spain" type="checkbox" checked >Spain
+          </input>
+       </td>
+       <td valign="top">
+          <input name="v" value="Turkey" type="checkbox" checked >Turkey
+          </input><br>
+          <input name="v" value="Austria" type="checkbox" checked >Austria
+          </input><br>
+          <input name="v" value="Belgium" type="checkbox" checked >Belgium
+          </input><br>
+          <input name="v" value="Germany/USA" type="checkbox" checked >Germany/USA
+          </input><br>
+          <input name="v" value="Nigeria" type="checkbox" checked >Nigeria
+          </input><br>
+          <input name="v" value="Sweden" type="checkbox" checked >Sweden
+          </input><br>
+          <input name="v" value="Algeria" type="checkbox" checked >Algeria
+          </input><br>
+          <input name="v" value="Argentina" type="checkbox" checked >Argentina
+          </input><br>
+          <input name="v" value="Azerbaijan" type="checkbox" checked >Azerbaijan
+          </input><br>
+          <input name="v" value="Belarus" type="checkbox" checked >Belarus
+          </input><br>
+          <input name="v" value="Bolivia" type="checkbox" checked >Bolivia
+          </input><br>
+          <input name="v" value="Chile" type="checkbox" checked >Chile
+          </input>
+        </td>
+        <td valign="top">
+          <input name="v" value="Denmark" type="checkbox" checked >Denmark
+          </input><br>
+          <input name="v" value="EUMETSAT/ESA" type="checkbox" checked >EUMETSAT/ESA
+          </input><br>
+          <input name="v" value="Greece" type="checkbox" checked >Greece
+          </input><br>
+          <input name="v" value="Kazakhstan" type="checkbox" checked >Kazakhstan
+          </input><br>
+          <input name="v" value="Pakistan" type="checkbox" checked >Pakistan
+          </input><br>
+          <input name="v" value="Philippines" type="checkbox" checked >Philippines
+          </input><br>
+          <input name="v" value="Poland" type="checkbox" checked >Poland
+          </input><br>
+          <input name="v" value="Thailand" type="checkbox" checked >Thailand
+          </input><br>
+          <input name="v" value="Venezuela" type="checkbox" checked >Venezuela
+          </input><br>
+          <input name="v" value="Venezuela/China" type="checkbox" checked >Venezuela/China
+          </input>
+        </td>
+      </tr>
+    </table>
+    </center>
+  </div>
+<br>
+<div id="wrapper">
+  <div id="tooltip" class="hidden">
+    <p id="name">0</p>
+  </div>
+</div>
+<script type="text/javascript">
+  // set width/height
+var w = 1000;
+var h = 600;
+var padding = 60;
+// load csv and it only exists within the callback function!
+d3.csv('d3df.csv', function(error, dataset) {
+  dataset.forEach(function(d) {
+    d.Distance = +d.Distance;
+    d.Period = +d["Period..minutes."];
+  }); 
+  // Scaling functions
+  var xScale = d3.scale.linear()
+                       //.domain([0, d3.max(dataset, function(d) { return d.Period; })]) 
+                       .domain([0,1])
+                       .range([padding, w - padding * 2]);
+  var yScale = d3.scale.linear()
+                       .domain([0, d3.max(dataset, function(d) { return d.Distance; })])
+                       .range([h - padding, padding]);
+ 
+  // Define Axes
+  var xAxis = d3.svg.axis()
+                    .scale(xScale)
+                    .orient("bottom")
+                    .ticks(5)
+                    .tickFormat("");
+  var yAxis = d3.svg.axis()
+                    .scale(yScale)
+                    .orient("left")
+                    .ticks(5);
+  // Create SVG
+  var svg = d3.select("#wrapper")
+              .append("svg")
+              .attr("width", w)
+              .attr("height", h);
+  // Create dots
+  svg.selectAll("circle")
+     .data(dataset)
+     .enter()
+     .append("circle")
+     .attr("cx", function(d) {
+          //return xScale(d.Period);
+          return xScale(Math.random());
+     })
+     .attr("cy", function(d) {
+          return yScale(d.Distance);
+     })
+     .attr("r", 2)
+     // filter colors
+     .attr("fill", function(d) {
+     //     return "rgb(0, 0, " + (d["Distance"]) + ")";
+          return "rgb(0, 0, 0)";
+     })
+     .on("mouseover", function(d) {
+         var xValue = parseFloat(d3.select(this).attr("cx"));
+         var yValue = parseFloat(d3.select(this).attr("cy"));
+         d3.select("#tooltip")
+           .style("left", xValue + "px")
+           .style("top", yValue + "px")
+           .select("#name")
+           .html(d["Name.of.Satellite..Alternate.Names"] + "<br>" + 
+                   "Country: " + d["Country.Org.of.UN.Registry"] + "<br>" +
+                   "Use: " + d["Users"] + "<br>" +
+                   "Purpose: " + d["Purpose"]);
+         console.log(d);
+         d3.select("#tooltip").classed("hidden", false);
+     })
+     .on("mouseout", function() {
+         d3.select("#tooltip").classed("hidden", true);
+     });
+  // Append axes to SVG
+  svg.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate(0," + (h - padding) + ")")
+      .call(xAxis);
+  svg.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate(" + padding + ",0)")
+      .call(yAxis);
+  // for check boxes
+  d3.selectAll("[name=user]").on("change", function() {
+      var selected = this.value;
+      display = this.checked ? "inline" : "none";
+      svg.selectAll("circle")
+        .filter(function(d) {return selected == d.Users;})
+        .attr("display", display);
+  });
+  d3.selectAll("[name=v]").on("change", function() {
+      var selected = this.value;
+      display = this.checked ? "inline" : "none";
+      svg.selectAll("circle")
+        .filter(function(d) {return selected == d["Country.Org.of.UN.Registry"];})
+        .attr("display", display);
+  });
+}); //end d3.csv()
+</script>
+
+</body>
+</html>
