@@ -2,7 +2,7 @@
 
 NYC Data Science Academy Project
 
-Code for the following graphic:
+Code for the following graphic depicting artificial satellite elevation in kilometers:
 [http://www.thomaskolasa.com/satellites_d3](http://www.thomaskolasa.com/satellites_d3)
 
 
